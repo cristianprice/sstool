@@ -1,0 +1,12 @@
+CREATE TABLE test.cyclist (
+	name text PRIMARY KEY,
+	birthday timestamp,
+	nationality text,
+	weight int,
+	height int
+);
+
+INSERT INTO test.cyclist ( name, nationality )
+VALUES ( 't1', 'ro' );
+INSERT INTO test.cyclist ( name, nationality )
+VALUES ( 't2', 'ru' );
