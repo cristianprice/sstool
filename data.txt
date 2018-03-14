@@ -1,3 +1,8 @@
+CREATE KEYSPACE test
+  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+
+USE test;
+
 CREATE TABLE test.cyclist (
 	name text PRIMARY KEY,
 	birthday timestamp,
