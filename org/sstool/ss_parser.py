@@ -22,11 +22,11 @@ INCL_END_BOUND = 6
 EXCL_START_BOUND = 7
 
 # Cell flags
-IS_DELETED_MASK = 0x01,  # Whether the cell is a tombstone or not.
-IS_EXPIRING_MASK = 0x02,  # Whether the cell is expiring.
-HAS_EMPTY_VALUE_MASK = 0x04,  # Whether the cell has an empty value. This will be the case for a tombstone in particular.
-USE_ROW_TIMESTAMP_MASK = 0x08,  # Whether the cell has the same timestamp as the row this is a cell of.
-USE_ROW_TTL_MASK = 0x10,  # Whether the cell has the same TTL as the row this is a cell of.
+IS_DELETED_MASK = 0x01  # Whether the cell is a tombstone or not.
+IS_EXPIRING_MASK = 0x02  # Whether the cell is expiring.
+HAS_EMPTY_VALUE_MASK = 0x04  # Whether the cell has an empty value. This will be the case for a tombstone in particular.
+USE_ROW_TIMESTAMP_MASK = 0x08  # Whether the cell has the same timestamp as the row this is a cell of.
+USE_ROW_TTL_MASK = 0x10  # Whether the cell has the same TTL as the row this is a cell of.
 
 # Cluster block header
 EMPTY = 100
@@ -122,7 +122,26 @@ def read_clustering_block(stream):
 def parse_simple_cell(stream):
     flags = ord(stream.read(1))
 
-    return flags
+    has_value = (flags & HAS_EMPTY_VALUE_MASK) == 0
+    is_deleted = (flags & IS_DELETED_MASK) != 0
+    is_expiring = (flags & IS_EXPIRING_MASK) != 0
+    use_row_timestamp = (flags & USE_ROW_TIMESTAMP_MASK) != 0
+    use_row_ttl = (flags & USE_ROW_TTL_MASK) != 0
+
+    val = None
+    if has_value:
+        val = parse_simple_cell_value(stream)
+
+    return flags, val
+
+
+def parse_simple_cell_value(stream):
+    length = read_varint(stream)
+    content = None
+    if length > 0:
+        content = stream.read(length)
+
+    return content
 
 
 def parse_block_header(block_header):
