@@ -1,6 +1,11 @@
 from org.sstool.varint import decode_stream
 
 
+def dump_bytes(path, bytes):
+    with open(path, mode='wb') as f:
+        f.write(bytes)
+
+
 def read_short(mf, byteorder='big', signed=False):
     bts = mf.read(2)
     return int.from_bytes(bts, byteorder=byteorder, signed=signed)

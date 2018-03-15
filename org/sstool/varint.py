@@ -1,49 +1,42 @@
-from io import BytesIO
-
-
-def _byte(b):
-    return bytes((b,))
-
-
-def encode(number):
-    """Pack `number` into varint bytes"""
-    buf = b''
-    while True:
-        towrite = number & 0x7f
-        number >>= 7
-        if number:
-            buf += _byte(towrite | 0x80)
-        else:
-            buf += _byte(towrite)
-            break
-    return buf
-
-
-def decode_stream(stream):
-    """Read a varint from `stream`"""
-    shift = 0
-    result = 0
-    while True:
-        i = _read_one(stream)
-        result |= (i & 0x7f) << shift
-        shift += 7
-        if not (i & 0x80):
-            break
-
-    return result
-
-
-def decode_bytes(buf):
-    """Read a varint from from `buf` bytes"""
-    return decode_stream(BytesIO(buf))
+# TODO Make it more efficient
 
 
 def _read_one(stream):
-    """Read a byte from the file (as an integer)
-    raises EOFError if the stream ends while reading bytes.
-    """
     c = stream.read(1)
     if c == '':
         raise EOFError("Unexpected EOF while reading bytes")
+    return c
 
-    return ord(c)
+
+def count_leading_bits(b, t='0'):
+    count = 0
+    seq = format(b, '#010b')[2:]
+    for c in seq:
+        if c == t:
+            count += 1
+        else:
+            break
+
+    seq = seq[(count + 1):]
+    val = int('0b' + seq, 0)
+
+    return count, bytes([val])
+
+
+def decode_stream(stream):
+    return read_unsigned_vint(stream)
+
+
+def read_unsigned_vint(stream, byteorder='big'):
+    first_byte = ord(_read_one(stream))
+    if first_byte == 0:
+        return first_byte
+
+    size, retval = count_leading_bits(first_byte, '1')
+    retval = [retval]
+
+    for c in range(size):
+        retval.append(_read_one(stream))
+
+    r = int.from_bytes(b''.join(retval), byteorder=byteorder, signed=False)
+    return r
