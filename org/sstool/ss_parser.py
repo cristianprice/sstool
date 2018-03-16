@@ -84,74 +84,13 @@ def parse_promoted_index(promoted_index):
 
 
 def read_promoted_index_block(stream):
-    first_name = read_clustering_prefix(stream)
-    last_name = read_clustering_prefix(stream)
+    start_name_len = read_short(stream)
+    start_name_bytes = read_bytes(stream, start_name_len)
 
-    return first_name, last_name
+    end_name_len = read_short(stream)
+    end_name_bytes = read_bytes(stream, end_name_len)
 
-
-def read_clustering_prefix(stream):
-    kind = ord(stream.read(1))
-    size = 0
-
-    if kind == CLUSTERING:
-        clustering_block = read_clustering_block(stream)
-        pass
-    elif kind == EXCL_END_BOUND:
-        size = stream.read(1)
-        clustering_block = read_clustering_block(stream)
-        pass
-    elif kind == INCL_START_BOUND:
-        size = stream.read(1)
-        clustering_block = read_clustering_block(stream)
-        pass
-    elif kind == EXCL_END_INCL_START_BOUNDARY:
-        size = stream.read(1)
-        clustering_block = read_clustering_block(stream)
-        pass
-    pass
-
-
-def read_clustering_block(stream):
-    clustering_block_header_val = parse_block_header(read_varint(stream))
-    cell = parse_simple_cell(stream)
-
-    return clustering_block_header_val, cell
-
-
-def parse_simple_cell(stream):
-    flags = ord(stream.read(1))
-
-    has_value = (flags & HAS_EMPTY_VALUE_MASK) == 0
-    is_deleted = (flags & IS_DELETED_MASK) != 0
-    is_expiring = (flags & IS_EXPIRING_MASK) != 0
-    use_row_timestamp = (flags & USE_ROW_TIMESTAMP_MASK) != 0
-    use_row_ttl = (flags & USE_ROW_TTL_MASK) != 0
-
-    val = None
-    if has_value:
-        val = parse_simple_cell_value(stream)
-
-    return flags, val
-
-
-def parse_simple_cell_value(stream):
-    length = read_varint(stream)
-    content = None
-    if length > 0:
-        content = stream.read(length)
-
-    return content
-
-
-def parse_block_header(block_header):
-    seq = format(block_header, '#010b')[2:]
-    if seq[0] == '1':
-        return NULL
-    elif seq[-1] == '1':
-        return EMPTY
-
-    return -1
+    return start_name_bytes, end_name_bytes
 
 
 def parse_deletion_time(stream):
