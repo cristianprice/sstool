@@ -1,11 +1,5 @@
 # TODO Make it more efficient
-
-
-def _read_one(stream):
-    c = stream.read(1)
-    if c == '':
-        raise EOFError("Unexpected EOF while reading bytes")
-    return c
+from org.sstool.utils import _read_one
 
 
 def count_leading_bits(b, t='0'):

@@ -1,12 +1,10 @@
-import mmap
-from contextlib import contextmanager
 from org.sstool.utils import read_short
 from org.sstool.utils import read_int32
 from org.sstool.utils import read_int64
 from org.sstool.utils import read_bytes
 from org.sstool.utils import read_varint
 from io import BytesIO
-from org.sstool.utils import dump_bytes
+from org.sstool.utils import load_ss_file
 
 MAX_BE32 = 0x7FFFFFFF
 MIN_BE64 = 0x8000000000000000
@@ -31,20 +29,6 @@ USE_ROW_TTL_MASK = 0x10  # Whether the cell has the same TTL as the row this is 
 # Cluster block header
 EMPTY = 100
 NULL = 1
-
-
-@contextmanager
-def load_ss_file(path):
-    with open(path, "r+") as f:
-        try:
-            map = mmap.mmap(f.fileno(), 0)
-            yield map
-
-        except Exception as e:
-            print(e)
-
-        finally:
-            map.close()
 
 
 def parse_index_file(path):
